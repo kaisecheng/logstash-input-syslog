@@ -145,6 +145,7 @@ describe LogStash::Inputs::Syslog do
           event = LogStash::Event.new({ "message" => "hello world, this is not syslog RFC3164" })
           input.syslog_relay(event)
           expect( event.get("tags") ).to eql  ["_grokparsefailure_sysloginput"]
+          expect( event.get(priority_key) ).to eql 13
 
           syslog_event = LogStash::Event.new({ "message" => "<164>Oct 26 15:19:25 1.2.3.4 %ASA-4-106023: Deny udp src DRAC:10.1.2.3/43434" })
           input.syslog_relay(syslog_event)

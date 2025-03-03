@@ -83,6 +83,8 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
   # assuming users would want that (they have specific use-case for LS as syslog server).
   config :service_type, :validate => :string, :default => 'system'
 
+  GROK_FAILURE_TAG = "_grokparsefailure_sysloginput"
+
   def initialize(*params)
     super
 
@@ -103,7 +105,7 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
     @grok_filter = LogStash::Filters::Grok.new(
         "overwrite" => @syslog_field,
         "match" => { @syslog_field => @grok_pattern },
-        "tag_on_failure" => ["_grokparsefailure_sysloginput"],
+        "tag_on_failure" => [GROK_FAILURE_TAG],
         "ecs_compatibility" => ecs_compatibility # use ecs-compliant patterns
     )
 
@@ -341,10 +343,14 @@ class LogStash::Inputs::Syslog < LogStash::Inputs::Base
   def syslog_relay(event)
     @grok_filter_exec.(event)
 
-    if event.get("tags").nil? || !event.get("tags").include?(@grok_filter.tag_on_failure)
+    if event.get("tags").nil? || !event.get("tags").include?(GROK_FAILURE_TAG)
       # Per RFC3164, priority = (facility * 8) + severity
       #                       = (facility << 3) & (severity)
-      priority = event.get(@priority_key).to_i rescue 13
+      priority = if event.include?(@priority_key)
+                   event.get(@priority_key).to_i rescue 13
+                 else
+                   13
+                 end
       set_priority event, priority
 
       @date_filter_exec.(event)
