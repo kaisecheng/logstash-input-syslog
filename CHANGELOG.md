@@ -1,3 +1,6 @@
+## 3.7.1
+  - Fix issue where the priority field was not being set correctly when grok failed [#76](https://github.com/logstash-plugins/logstash-input-syslog/pull/78)
+
 ## 3.7.0
   - Changed the TCP reading mode to use the non-blocking method [#75](https://github.com/logstash-plugins/logstash-input-syslog/pull/75)
     It fixes the high CPU usage when TCP clients do not properly disconnect/send EOF.
